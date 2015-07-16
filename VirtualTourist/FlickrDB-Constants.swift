@@ -24,5 +24,6 @@ extension FlickrDB {
         static let SafeSearch = "1"
         static let DataFormat = "json"
         static let NoJsonCallBack = "1"
+        static let PerPage = 18
     }
 }

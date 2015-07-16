@@ -10,6 +10,8 @@ import UIKit
 import MapKit
 import CoreData
 
+var pageNo = 1
+
 class PhotoViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MKMapViewDelegate, NSFetchedResultsControllerDelegate {
     
     // View component outlets
@@ -106,6 +108,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         fetchedResultsController.delegate = nil
+        pageNo = 1
     }
     
     //# MARK: -  Customisation of Collection View Layout
@@ -312,6 +315,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         if !selectedIndexes.isEmpty {
             deleteSelection()
         } else {
+            pageNo+=1
             loadNewCollection()
         }
     }
@@ -324,6 +328,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         }
         
         for photo in selectedPhotos {
+            photo.image = nil
             sharedContext.deleteObject(photo)
         }
         CoreDataStackManager.sharedInstance().saveContext()
@@ -335,6 +340,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     func loadNewCollection() {
         
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
+            photo.image = nil
             sharedContext.deleteObject(photo)
         }
         CoreDataStackManager.sharedInstance().saveContext()

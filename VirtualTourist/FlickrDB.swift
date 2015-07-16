@@ -32,7 +32,9 @@ class FlickrDB : NSObject  {
             "lon": longitude,
             "extras": FlickrDB.Constants.Extras,
             "format": FlickrDB.Resources.DataFormat,
-            "nojsoncallback": FlickrDB.Resources.NoJsonCallBack
+            "nojsoncallback": FlickrDB.Resources.NoJsonCallBack,
+            "per_page": FlickrDB.Resources.PerPage,
+            "page": pageNo
         ]
 
         let urlString = FlickrDB.Constants.BaseUrl + escapedParameters(methodArguments as! [String : AnyObject])
