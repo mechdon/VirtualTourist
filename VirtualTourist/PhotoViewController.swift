@@ -61,11 +61,11 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         }
         
         // Show small map and annotation for top of page
-        var latDelta:CLLocationDegrees = 0.1
-        var lonDelta:CLLocationDegrees = 0.1
-        var span:MKCoordinateSpan = MKCoordinateSpanMake(latDelta, lonDelta)
-        var location:CLLocationCoordinate2D = CLLocationCoordinate2DMake(lat, lon)
-        var region:MKCoordinateRegion = MKCoordinateRegionMake(location, span)
+        let latDelta:CLLocationDegrees = 0.1
+        let lonDelta:CLLocationDegrees = 0.1
+        let span:MKCoordinateSpan = MKCoordinateSpanMake(latDelta, lonDelta)
+        let location:CLLocationCoordinate2D = CLLocationCoordinate2DMake(lat, lon)
+        let region:MKCoordinateRegion = MKCoordinateRegionMake(location, span)
         
         mapviewPhotoVC.setRegion(region, animated: true)
         
@@ -78,8 +78,11 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         photosCollectionView.delegate = self
         photosCollectionView.dataSource = self
         
-        // Set delegate for fetchResultsController
-        fetchedResultsController.performFetch(nil)
+        do {
+            // Set delegate for fetchResultsController
+            try fetchedResultsController.performFetch()
+        } catch _ {
+        }
         fetchedResultsController.delegate = self
         
         // Initial setting for bar button
@@ -201,7 +204,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        let sectionInfo = self.fetchedResultsController.sections![section] as! NSFetchedResultsSectionInfo
+        let sectionInfo = self.fetchedResultsController.sections![section] 
         return sectionInfo.numberOfObjects
     }
     
@@ -222,7 +225,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCollectionViewCell
         
-        if let index = find(selectedIndexes, indexPath) {
+        if let index = selectedIndexes.indexOf(indexPath) {
             selectedIndexes.removeAtIndex(index)
         } else {
             selectedIndexes.append(indexPath)
@@ -253,7 +256,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 data, error in
                 
                 if let downloaderror = error {
-                    println("Flickr download error: \(downloaderror)")
+                    print("Flickr download error: \(downloaderror)")
                     // Stop animating activity indicator
                     cell.activityIndicator.stopAnimating()
                     self.stopAnimate+=1
@@ -275,7 +278,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         // If the cell is "selected", the delete icon will be shown and image greyed out. Swift's "find" function is used to see if the indexPath is in the array.
         
-        if let index = find(selectedIndexes, indexPath) {
+        if let index = selectedIndexes.indexOf(indexPath) {
             cell.delete.hidden = false
             cell.photoImageView.alpha = 0.5
         } else {
@@ -348,7 +351,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         FlickrDB.sharedInstance().getFlickrImagesFromLocation(lat, longitude: lon) { result, error in
             
             if let error = error {
-                println("error")
+                print("error")
                 
             } else {
                 
@@ -358,9 +361,18 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                         
                         if photosArray.isEmpty {
                             
+                            if pageNo == 1 {
+                            
                             // Show alert message to show that there are no photos from this location
                             self.showAlertMsg("No Photos", errorMsg: "There are no photos from this location!")
                             
+                            } else {
+                                
+                            self.showAlertMsg("No Photos", errorMsg: "There are no more photos from this location!")
+                                
+                            }
+                                
+                                
                         } else {
                         
                         // Parse th array of photos dictionaries
@@ -392,10 +404,10 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     // Show Alert Method
     func showAlertMsg(errorTitle: String, errorMsg: String) {
-        var title = errorTitle
-        var errormsg = errorMsg
+        let title = errorTitle
+        let errormsg = errorMsg
         
-        NSOperationQueue.mainQueue().addOperationWithBlock{ var alert = UIAlertController(title: title, message: errormsg, preferredStyle: UIAlertControllerStyle.Alert)
+        NSOperationQueue.mainQueue().addOperationWithBlock{ let alert = UIAlertController(title: title, message: errormsg, preferredStyle: UIAlertControllerStyle.Alert)
             alert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { action in
                 self.dismissViewControllerAnimated(true, completion: nil)
             }))

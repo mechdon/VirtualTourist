@@ -9,7 +9,7 @@
 import Foundation
 
 //#MARK: - Files Support
-private let _documentsDirectoryURL = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first as! NSURL
+private let _documentsDirectoryURL = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first! as NSURL
 private let _fileURL: NSURL = _documentsDirectoryURL.URLByAppendingPathComponent("Flickr-Context")
 
 class Config: NSObject {

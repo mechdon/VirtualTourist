@@ -39,8 +39,11 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
         uilpgr = UILongPressGestureRecognizer(target: self, action: "action:")
         uilpgr.minimumPressDuration = 2.0
         
-        // Set delegate for fetchResultsController
-        fetchedResultsController.performFetch(nil)
+        do {
+            // Set delegate for fetchResultsController
+            try fetchedResultsController.performFetch()
+        } catch _ {
+        }
         fetchedResultsController.delegate = self
         
         // Fetch all pins
@@ -76,10 +79,10 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     // Restore Map Region using NSUserDefaults
     func restoreMapRegion() {
-        var regionLat = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.Latitude)
-        var regionLon = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.Longitude)
-        var regionLatDelta = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.LatitudeDelta)
-        var regionLonDelta = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.LongitudeDelta)
+        let regionLat = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.Latitude)
+        let regionLon = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.Longitude)
+        let regionLatDelta = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.LatitudeDelta)
+        let regionLonDelta = NSUserDefaults.standardUserDefaults().doubleForKey(MapKey.LongitudeDelta)
         
         mapView.setRegion(MKCoordinateRegionMake(CLLocationCoordinate2DMake(regionLat, regionLon), MKCoordinateSpanMake(regionLatDelta, regionLonDelta)), animated: false)
     }
@@ -93,9 +96,15 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     func fetchAllPins() -> [Pin] {
         let error: NSErrorPointer = nil
         let fetchRequest = NSFetchRequest(entityName: "Pin")
-        let results = sharedContext.executeFetchRequest(fetchRequest, error: error)
+        let results: [AnyObject]?
+        do {
+            results = try sharedContext.executeFetchRequest(fetchRequest)
+        } catch let error1 as NSError {
+            error.memory = error1
+            results = nil
+        }
         if error != nil {
-            println("Error in fetchAllPins(): \(error)")
+            print("Error in fetchAllPins(): \(error)")
         }
         
         return results as! [Pin]
@@ -104,11 +113,11 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     // Long press gesture recognizer
     func action(gestureRecognizer:UIGestureRecognizer) {
         
-        var touchPoint = gestureRecognizer.locationInView(mapView)
+        let touchPoint = gestureRecognizer.locationInView(mapView)
         
-        var newCoordinate:CLLocationCoordinate2D = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
+        let newCoordinate:CLLocationCoordinate2D = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
         
-        var newannotation = MKPointAnnotation()
+        let newannotation = MKPointAnnotation()
         
         newannotation.coordinate = newCoordinate
         
@@ -153,7 +162,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     //# MARK:- Mapview delegate methods
     
     // Pin Annotations
-    func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView! {
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView! {
         
         let reuseId = "pin"
         
@@ -165,7 +174,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     }
     
     // Save map region in NSUserDefaults whenever the region changes
-    func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
+    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         NSUserDefaults.standardUserDefaults().setDouble(mapView.centerCoordinate.latitude, forKey: MapKey.Latitude)
         NSUserDefaults.standardUserDefaults().setDouble(mapView.centerCoordinate.longitude, forKey: MapKey.Longitude)
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.latitudeDelta, forKey: MapKey.LatitudeDelta)
@@ -173,12 +182,12 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     }
 
     // Transit to Photo View Controller to show photos when pin is selected.
-    func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!) {
+    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         
         let photoVC = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoViewController") as! PhotoViewController
         photoVC.pin = view.annotation as! Pin
-        photoVC.lat = view.annotation.coordinate.latitude
-        photoVC.lon = view.annotation.coordinate.longitude
+        photoVC.lat = view.annotation!.coordinate.latitude
+        photoVC.lon = view.annotation!.coordinate.longitude
         self.navigationController?.pushViewController(photoVC, animated: true)
         
     }

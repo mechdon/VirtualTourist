@@ -45,11 +45,11 @@ class FlickrDB : NSObject  {
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             
             if let error = downloadError {
-                let newError = FlickrDB.errorForData(data, response: response, error: downloadError)
+                let newError = FlickrDB.errorForData(data, response: response, error: downloadError!)
                 completionHandler(result: nil, error: newError)
             } else {
                 var parsingError: NSError? = nil
-                let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
+                let parsedResult = (try! NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments)) as! NSDictionary
                 if parsingError == nil {
                     dispatch_async(dispatch_get_main_queue()) {
                         completionHandler(result: parsedResult, error: nil)
@@ -86,13 +86,13 @@ class FlickrDB : NSObject  {
             urlVars += [key + "=" + "\(replaceSpaceValue)"]
         }
         
-        return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
+        return (!urlVars.isEmpty ? "?" : "") + urlVars.joinWithSeparator("&")
     }
     
     // Make error message based on status message from Flickr
     class func errorForData(data: NSData?, response: NSURLResponse?, error: NSError) -> NSError {
         
-        if let parsedResult = NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments, error: nil) as? [String : AnyObject] {
+        if let parsedResult = (try? NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments)) as? [String : AnyObject] {
             if let errorMessage = parsedResult["status_message"] as? String {
                 
                 let userInfo = [NSLocalizedDescriptionKey : errorMessage]
